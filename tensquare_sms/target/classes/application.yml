@@ -3,3 +3,9 @@ server:
 spring:
   rabbitmq:
     host: 192.168.73.140
+aliyun:
+  sms:
+    accessKeyId: LTAI4FhiE4tZTwabn7Lge9NA
+    accessKeySecret: uwICyl91uRCKPRIciusLPnHqyrqPFJ
+    template_code: SMS_178755916
+    sign_name: 十次方论坛

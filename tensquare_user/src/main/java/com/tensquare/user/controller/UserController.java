@@ -1,8 +1,10 @@
 package com.tensquare.user.controller;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tensquare.user.pojo.Admin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,6 +21,8 @@ import com.tensquare.user.service.UserService;
 import entity.PageResult;
 import entity.Result;
 import entity.StatusCode;
+import util.JwtUtil;
+
 /**
  * 控制器层
  * @author Administrator
@@ -33,6 +37,27 @@ public class UserController {
 	private UserService userService;
 	@Autowired
 	private RedisTemplate redisTemplate;
+	@Autowired
+	private JwtUtil jwtUtil;
+
+	/**
+	 * 登录
+	 * @return
+	 */
+	@RequestMapping(value = "/login",method= RequestMethod.POST)
+	public Result login(@RequestBody User user){
+		user = userService.login(user.getMobile(), user.getPassword());
+		if (user == null){
+			return new Result(false,StatusCode.LOGINERROR,"登录失败");
+		}
+		//使得前后端可以通话的操作，采用JWT来实现
+		//生成令牌
+		String token = jwtUtil.createJWT(user.getId(), user.getMobile(), "user");
+		Map<String,Object> map = new HashMap<>();
+		map.put("token", token);
+		map.put("roles", "user");
+		return new Result(true,StatusCode.OK,"登录成功",map);
+	}
 
 	/**
 	 * 发送短信验证码
@@ -41,7 +66,7 @@ public class UserController {
 	@RequestMapping(value = "/sendsms/{mobile}",method= RequestMethod.POST)
 	public Result sendsms(@PathVariable String mobile){
 		userService.sendsms(mobile);
-		return new Result(true,StatusCode.OK,"查询成功",userService.findAll());
+		return new Result(true,StatusCode.OK,"查询成功");
 	}
 
 	/**
@@ -135,7 +160,7 @@ public class UserController {
 	}
 	
 	/**
-	 * 删除
+	 * 删除 必须有admin角色权限
 	 * @param id
 	 */
 	@RequestMapping(value="/{id}",method= RequestMethod.DELETE)

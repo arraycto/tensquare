@@ -9,7 +9,10 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+import javax.servlet.http.HttpServletRequest;
 
+import com.tensquare.user.pojo.Admin;
+import io.jsonwebtoken.Claims;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +21,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.util.StringUtils;
 import util.IdWorker;
 
 import com.tensquare.user.dao.UserDao;
 import com.tensquare.user.pojo.User;
+import util.JwtUtil;
 
 /**
  * 服务层
@@ -36,14 +42,18 @@ public class UserService {
 
 	@Autowired
 	private UserDao userDao;
-	
 	@Autowired
 	private IdWorker idWorker;
-
 	@Autowired
 	private RedisTemplate redisTemplate;
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
+	@Autowired
+	private BCryptPasswordEncoder encoder;
+	@Autowired
+	private HttpServletRequest request;
+	@Autowired
+	private JwtUtil jwtUtil;
 
 	/**
 	 * 查询全部列表
@@ -53,7 +63,6 @@ public class UserService {
 		return userDao.findAll();
 	}
 
-	
 	/**
 	 * 条件查询+分页
 	 * @param whereMap
@@ -93,6 +102,14 @@ public class UserService {
 	 */
 	public void add(User user) {
 		user.setId( idWorker.nextId()+"" );
+		//密码加密
+		user.setPassword(encoder.encode(user.getPassword()));
+		user.setFollowcount(0);//关注数
+		user.setFanscount(0);//粉丝数
+		user.setOnline(0L);//在线时长
+		user.setRegdate(new Date());//注册日期
+		user.setUpdatedate(new Date());
+		user.setLastdate(new Date());
 		userDao.save(user);
 	}
 
@@ -105,10 +122,14 @@ public class UserService {
 	}
 
 	/**
-	 * 删除
+	 * 删除 必须有admin角色权限
 	 * @param id
 	 */
 	public void deleteById(String id) {
+		String token = (String) request.getAttribute("claims_admin");
+		if (StringUtils.isEmpty(token)){
+			throw new RuntimeException("权限不足");
+		}
 		userDao.deleteById(id);
 	}
 
@@ -185,4 +206,15 @@ public class UserService {
 		//在控制台显示一份【方便测试】
 		System.out.println("验证码为: "+checkcode);
     }
+
+	public User login(String mobile, String  password) {
+		//先根据用户名查询对象
+		User userLogin = userDao.findByMobile(mobile);
+		//然后拿数据库中的密码和用户输入的密码匹配是否相同
+		if (userLogin != null && encoder.matches(password, userLogin.getPassword())){
+			return userLogin;
+		}
+		//登录失败
+		return null;
+	}
 }
