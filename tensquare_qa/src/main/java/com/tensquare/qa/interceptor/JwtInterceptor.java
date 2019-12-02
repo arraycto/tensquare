@@ -1,9 +1,9 @@
 package com.tensquare.qa.interceptor;
 
 import io.jsonwebtoken.Claims;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import util.JwtUtil;
 
@@ -22,7 +22,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         //拦截器只是负责把有请求头中包含token的令牌进行一个解析验证
         String header = request.getHeader("Authorization");
 
-        if (!StringUtils.isEmpty(handler)){
+        if (StringUtils.isNotBlank(header)){
             //如果有包含Authorization头信息，就对其进行解析
             if (header.startsWith("Bearer ")){
                 //得到token

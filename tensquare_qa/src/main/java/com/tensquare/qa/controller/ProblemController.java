@@ -1,7 +1,7 @@
 package com.tensquare.qa.controller;
-import java.util.List;
 import java.util.Map;
 
+import com.tensquare.qa.client.BaseClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
@@ -14,6 +14,7 @@ import entity.PageResult;
 import entity.Result;
 import entity.StatusCode;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -30,6 +31,14 @@ public class ProblemController {
 	private ProblemService problemService;
 	@Autowired
 	private HttpServletRequest request;
+	@Autowired
+	private BaseClient baseClient;
+
+	@GetMapping("/label/{labelid}")
+	public Result findByLabelId( @PathVariable String labelid){
+		Result result = baseClient.findById(labelid);
+		return result;
+	}
 
 	@GetMapping("/newlist/{labelid}/{page}/{size}")
 	public Result newList(@PathVariable String labelid, @PathVariable int page, @PathVariable int size){
