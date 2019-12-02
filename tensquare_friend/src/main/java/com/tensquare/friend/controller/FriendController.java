@@ -1,5 +1,6 @@
 package com.tensquare.friend.controller;
 
+import com.tensquare.friend.client.UserClient;
 import com.tensquare.friend.service.FriendService;
 import entity.Result;
 import entity.StatusCode;
@@ -20,9 +21,10 @@ public class FriendController {
 
     @Autowired
     private FriendService friendService;
-    @Autowired
     @Resource
     private HttpServletRequest request;
+    @Autowired
+    private UserClient userClient;
 
     @RequestMapping(value="/like/{friendId}/{type}",method= RequestMethod.PUT)
     public Result addFriend(@PathVariable String friendId , @PathVariable String type) {
@@ -42,6 +44,7 @@ public class FriendController {
                if (flag == 0){
                    return new Result(false, StatusCode.ERROR, "不能重复添加好友");
                }else if (flag == 1){
+                   userClient.updatefanscountandfollowcount(userId, friendId, 1);
                    return new Result(true, StatusCode.OK, "添加成功");
                }
            }else if (type.equals("2")){
@@ -59,4 +62,21 @@ public class FriendController {
         }
 
     }
+
+
+    @RequestMapping(value="/{friendId}",method= RequestMethod.DELETE)
+    public Result addFriend(@PathVariable String friendId) {
+        //验证是否登录，拿到当前登录的用户id
+        Claims claims = (Claims)request.getAttribute("claims_user");
+        if(claims == null){
+            //说明当前用户没有user角色
+            return new Result(false, StatusCode.LOGINERROR,"无权访问");
+        }
+        //得到当前用户id
+        String userId = claims.getId();
+        friendService.deleteFriend(userId, friendId);
+        userClient.updatefanscountandfollowcount(userId, friendId, -1);
+        return new Result(false, StatusCode.OK, "删除成功");
+    }
+
 }
