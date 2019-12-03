@@ -3,6 +3,8 @@ package com.tensquare.base.service;
 import com.tensquare.base.dao.LabelDao;
 import com.tensquare.base.pojo.Label;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,14 +23,18 @@ import java.util.List;
 
 @Service
 @Transactional
+@RefreshScope
 public class LabelService {
 
     @Autowired
     private LabelDao labelDao;
     @Autowired
     private IdWorker idWorker;
+    @Value("${ip}")
+    private String ip;
 
     public List<Label> findAll(){
+        System.out.println("ip为: "+ip);
         return labelDao.findAll();
     }
 
