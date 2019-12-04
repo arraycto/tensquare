@@ -1,5 +1,9 @@
 package com.tensquare.base.pojo;
 
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -10,6 +14,8 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name="tb_label")
+@Data
+@Accessors(chain = true)
 public class Label implements Serializable {
 
     @Id
