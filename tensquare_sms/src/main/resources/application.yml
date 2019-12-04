@@ -7,5 +7,5 @@ aliyun:
   sms:
     accessKeyId: LTAI4FhiE4tZTwabn7Lge9NA
     accessKeySecret: uwICyl91uRCKPRIciusLPnHqyrqPFJ
-    template_code: SMS_178755916
+    template_code: SMS_179225796
     sign_name: 十次方论坛
